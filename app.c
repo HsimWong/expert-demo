@@ -19,6 +19,10 @@ void * app_control(const char * ping_command,
 
 
 int main(int argc, char const *argv[]) {
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s <role>\n", argv[0]);
+        return 1;
+    }
     printf("App entered, %s\n", argv[1]);
     pthread_t thread_application;
     const char * target;
