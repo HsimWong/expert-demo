@@ -1,0 +1,29 @@
+{
+	"server": {
+		"ip_addr": "10.2.25.251"
+	},
+	"nodes": {
+		"10.2.25.5":{
+			"id": 0,
+			"addr": "10.2.25.5",
+			"display": ":0"
+		}, 
+		"10.2.25.41":{
+			"id": 1,
+			"addr": "10.2.25.41",
+			"display": ":0"
+		}
+	},
+	"jobs": {
+		"jobid0": {
+			"master_node": 0,
+			"backup_node": 1,
+			"entrypoint": "firefox"
+		},
+		"jobid1": {
+			"master_node": 1,
+			"backup_node": 0,
+			"entrypoint": "gedit"
+		}
+	}
+}

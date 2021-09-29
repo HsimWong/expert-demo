@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "node.h": "c",
-        "utils.h": "c"
+        "utils.h": "c",
+        "stdio.h": "c"
     }
 }

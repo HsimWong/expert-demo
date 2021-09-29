@@ -3,6 +3,31 @@
 #include <unistd.h>
 #include <stdio.h>
 #include "utils.h"
+#include <netinet/in.h>
+#include <sys/socket.h>
+
+char * send(char *target, char *messsge) {
+    
+}
+
+void receive(
+    char **target_table,
+    void **target_func(char *input_mesg, char *output_mesg)) 
+{
+    int server_socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in server_address;
+    server_address.sin_addr.s_addr = INADDR_ANY;
+    // server_address = AF_INET;
+    server_address.sin_family = AF_INET;
+    server_address.sin_port = htons(PORT);
+    bind(server_socket_descriptor, (struct sockaddr *)&server_address, sizeof(server_address));
+    while (1) {
+        listen(server_socket_descriptor, 5);
+        int client_socket = accept(server_socket_descriptor, NULL, NULL);
+
+    }
+}
+
 
 int check_connectivity(char * target) {
     const char * target_addr = target;
@@ -46,13 +71,12 @@ int prune_command(char *origin) {
     return length;
 }
 
-// pid_t getPID(char *command) {
-//     // char check_pid_command[1024] = "ps aux | grep ";
-//     // strcat(check_pid_command, command);
-//     // strcat(check_pid_command, " | awk '{print $2}'");
-//     char check_pid_command[] = "echo \"$!\"";
-    
-// }
+void get_command_result(char * command, char * result, int length) {
+    prune_command(command);
+    FILE *fp;
+    fp = popen(command, "r");
+    fgets(result, length, fp);
+}
 
 pid_t exec_local(char * command) {
     putenv("DISPLAY=:0");
@@ -60,11 +84,20 @@ pid_t exec_local(char * command) {
     char *exec_command = malloc(command_length * sizeof(char));
     strcat (exec_command, command);
     strcat(exec_command, " & echo \"$!\"");
-    // printf("%s",exec_command);
     FILE *fp;
     char result[8] = {0};
     fp = popen(exec_command, "r");
     fgets(result, 8, fp);
     return atoi(result);
 }
+
+pid_t execute_remote(char * remote_addr, char *command) {
+    char *exec_command[512] = "ssh ";
+    strcat(exec_command, remote_addr);
+    strcat(exec_command, " ; \"");
+    strcat(exec_command, command);
+    strcat(exec_command, "\"");
+    return exec_local(exec_command);        
+}
+
 
