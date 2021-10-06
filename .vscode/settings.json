@@ -2,6 +2,7 @@
     "files.associations": {
         "node.h": "c",
         "utils.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "json.h": "c"
     }
 }

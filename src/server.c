@@ -1,4 +1,5 @@
 #include "server.h"
+#include "utils.h"
 #include <stdio.h>
 #include <string.h>
 #include <json-c/json.h>
@@ -47,7 +48,7 @@ void migrate(Server *self, Job *job) {
 int get_failed_jobs(Server * self, int * indeces) {
     int failed_job_num = 0;
     for (int i = 0; i < self->scheduled_jobs_num; i++) {
-        self->scheduled_jobs[i]
+        self->scheduled_jobs[i];
     }
 }
 
@@ -94,24 +95,24 @@ Server * InitServer(char *server_ip) {
 }
 
 
-char *get_field_value_string(Json *json, char *field) {
-    char *ret;
-    Json *field_object;
-    json_object_object_get_ex(json, field, &field_object);
-    return (char *)json_object_get_string(field_object);
-}
+// char *get_field_value_string(Json *json, char *field) {
+//     char *ret;
+//     Json *field_object;
+//     json_object_object_get_ex(json, field, &field_object);
+//     return (char *)json_object_get_string(field_object);
+// }
 
-Json *get_field_object(Json *json, char *field) {
-    Json *field_object;
-    json_object_object_get_ex(json, field, &field_object);
-    return field_object;
-}
+// Json *get_field_object(Json *json, char *field) {
+//     Json *field_object;
+//     json_object_object_get_ex(json, field, &field_object);
+//     return field_object;
+// }
 
 
 
 int main(int argc, char const *argv[])
 {
-    enum json_type type;
+    // enum json_type type;
     Json *config = json_object_from_file("./conf.json");
     Json *server_config = get_field_object(config, "server");
     Json *nodes_config = get_field_object(config, "nodes");
