@@ -10,26 +10,52 @@
 #include <pthread.h>
 #include <string.h>
 #include <signal.h>
+#include "utils.h"
 #define SERVER 0
 #define CLIENT 1
+#define FAIL 0
+#define SUCCESS 1
 
-// const char * server_ip = "10.2.25.125";
-// const char * client_ip = "10.2.25.61";
-const char * server_ip = "ping -c 1 -w 1 10.2.25.5 2> /dev/null | grep received";
-const char * client_ip = "ping -c 1 -w 1 10.2.25.125 2> /dev/null | grep received";
+char * server_ip = "192.168.122.82";
+char * client_ip = "192.168.122.1";
+// const char * server_ping_command = "ping -c 1 -w 1 10.2.25.5 2> /dev/null | grep received";
+// const char * client_ping_command = "ping -c 1 -w 1 10.2.25.125 2> /dev/null | grep received";
+const char * server_ping_command = "ping -c 1 -w 1 192.168.122.82 2> /dev/null | grep received";
+const char * client_ping_command = "ping -c 1 -w 1 192.168.122.1 > /dev/null | grep received";
+
 const char * ping_public = "ping -c 1 -w 1 baidu.com 2> /dev/null | grep received";
+const char * visu_server = "localhost";
+int port = 10000;
 
 char * demo_command = "/home/dji/Onboard-SDK-master/build/bin/camera-stream-target-tracking-sample";
-
+Sender *sender;
+DBUpdate *dbhandler;
 
 
 void go_client();
 void go_server();
+void report(int if_success, int requester);
 void app_control(const char * ping_command, 
                    int requester);
 
+
+
+void report(int if_success, int requester) {
+    // char *requester_ip = requester ? client_ip : server_ip;
+    // char *suffix = if_success ? "1" : "0";
+    // char *message = (char *)malloc(32 * sizeof(char));
+    // strcat(message, requester_ip);
+    // strcat(message, ",");
+    // strcat(message, suffix);
+    // sender->msg_send(sender, message, 32);
+    char *request_ip = requester ? client_ip : server_ip;
+    dbhandler->update_status(dbhandler, request_ip, if_success ? "SUCCESS" : "FAILED");
+}
 //void getPID();
 
+// char * get_self_ip() {
+
+// }
 
 
 int main(int argc, char const *argv[]) {
@@ -41,17 +67,21 @@ int main(int argc, char const *argv[]) {
     const char * target;
     
     int requester;
-
+    sender = InitSender(visu_server, port);
+    dbhandler = InitDBUpdate();
+    // dbhandler->register_node(dbhandler, )
 
     switch (argv[1][0]) {
     case 's':
         printf("Entering Server Mode\n");
-        target = client_ip;
+        target = client_ping_command;
         requester = SERVER;
+        dbhandler->register_node(dbhandler, server_ip, "node1");
         break;
     case 'c':
-        target = server_ip;
+        target = server_ping_command;
         requester = CLIENT;
+        dbhandler->register_node(dbhandler, client_ip, "node1");
         break;
     default:
         fprintf(stderr, "option error, exiting");
@@ -61,6 +91,7 @@ int main(int argc, char const *argv[]) {
     printf("FUCK\n");
     // printf("%d", requester);
     app_control(target, requester);
+    sender->sender_close(sender);
     // pthread_join(thread_application, NULL);
     return 0;
 }
@@ -83,7 +114,9 @@ int reachable(char buffer[]) {
 }
 
 void run_app() {
-    system("/home/dji/Onboard-SDK-master/build/bin/camera-stream-target-tracking-sample /home/dji/Onboard-SDK-master/build/bin/UserConfig.txt &");
+    // system("/home/dji/Onboard-SDK-master/build/bin/camera-stream-target-tracking-sample /home/dji/Onboard-SDK-master/build/bin/UserConfig.txt &");
+    // report(SUCCESS)
+    system("firefox");
 }
 
 int getPID() {
@@ -117,7 +150,7 @@ void app_control(const char * ping_private,
     if (requester == SERVER) {
         //pthread_create(&app_thread, NULL, __start_routine, NULL);
         run_app();
-        printf("Application started");
+        printf("Application started\n");
         pid = getPID();
     } else {
         pid = 65536;
@@ -142,15 +175,17 @@ void app_control(const char * ping_private,
                         continue;
                     }
                     terminate(pid);    
-                    printf("Application terminated");
+                    printf("Application terminated\n");
+                    report(FAIL, requester);
                     app_disabled = 1;
                 }
             } else {
                 if (app_disabled) {
                     run_app();
+                    report(SUCCESS, requester);
                     pid = getPID();
                     //pthread_create(&app_thread, NULL, __start_routine, NULL);
-                    printf("Application started");
+                    printf("Application started\n");
                     app_disabled = 0;
                 }
             }
@@ -158,16 +193,20 @@ void app_control(const char * ping_private,
             if (reachable(private_conn)) {
                 //if (!app_disabled) {
                     //pthread_cancel(app_thread);
-            terminate(pid);
-                    printf("Application terminated");
-                    app_disabled = 1;
+            if (!app_disabled) {
+                terminate(pid);
+                report(FAIL, requester);
+                printf("Application terminated\n");
+                app_disabled = 1;
+            }
                 //}
             } else if (reachable(public_conn) && !reachable(private_conn)) {
                 if (app_disabled) {
                     //pthread_create(&app_thread, NULL, __start_routine, NULL);
                     run_app();
+                    report(SUCCESS, requester);
                     pid = getPID();
-                    printf("Application started");
+                    printf("Application started\n");
                     app_disabled = 0;
                 }
             } 
